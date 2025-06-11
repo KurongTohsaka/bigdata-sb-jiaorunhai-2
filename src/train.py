@@ -17,7 +17,7 @@ def train_model(config):
     dataloader = prepare_dataloader(features, config)
 
     # 初始化模型
-    device = torch.device("mps")
+    device = config.DEVICE
     model = SimCLRModel(config).to(device)
 
     # 优化器
@@ -53,6 +53,8 @@ def train_model(config):
         # 计算平均损失
         avg_loss = total_loss / len(dataloader)
         print(f"Epoch {epoch + 1}/{config.EPOCHS}, Loss: {avg_loss:.4f}")
+        if avg_loss <= 0 or torch.isnan(torch.tensor(avg_loss)):
+            print(f"警告：异常损失值 {avg_loss}")
 
         # 保存最佳模型
         if avg_loss < best_loss:
@@ -70,7 +72,7 @@ def train_model(config):
 
 def extract_embeddings(model, features, config):
     """提取用户嵌入特征"""
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = config.DEVICE
     model.eval()
 
     with torch.no_grad():
